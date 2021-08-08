@@ -11,6 +11,8 @@ Decode from encoded b.
 Display the result.
 ### func UTF82utf16be(b []byte) ([]byte, error)
 Turn the result to its original coding form to decode.
+### func Free(b []byte)
+Free memory allocated by encode / decode.
 
 # Usage
 ## As package
