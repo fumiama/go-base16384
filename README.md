@@ -14,7 +14,7 @@ Turn the result to its original coding form to decode.
 
 # Usage
 ## As package
-Just include it in your project.
+Just import it in your project.
 ## As lib
 Copy this repo to `$GOPATH/src`, then execute
 ```bash
