@@ -13,8 +13,8 @@ func EncodeString(s string) []byte {
 	return Encode(helper.StringToBytes(s))
 }
 
-func DecodeString(s string) []byte {
-	return Decode(helper.StringToBytes(s))
+func DecodeString(d []byte) string {
+	return helper.BytesToString(Decode(d))
 }
 
 func Encode(b []byte) (encd []byte) {

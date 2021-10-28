@@ -13,7 +13,7 @@ func TestBase14(t *testing.T) {
 		d, err := UTF82utf16be(es)
 		if string(d) == string(e) {
 			if err == nil {
-				ds := string(Decode(d))
+				ds := DecodeString(d)
 				t.Log(ds)
 				if ds != teststr {
 					t.Fail()
