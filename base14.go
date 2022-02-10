@@ -1,20 +1,14 @@
-// +build amd64 arm64 ppc64le mips64le 386 arm mipsle
-
 // Package base14 base16384 的 go 接口
 package base14
 
-import (
-	"unsafe"
-
-	"github.com/wdvxdr1123/ZeroBot/utils/helper"
-)
+import "encoding/binary"
 
 func EncodeString(s string) []byte {
-	return Encode(helper.StringToBytes(s))
+	return Encode(StringToBytes(s))
 }
 
 func DecodeString(d []byte) string {
-	return helper.BytesToString(Decode(d))
+	return BytesToString(Decode(d))
 }
 
 func Encode(b []byte) (encd []byte) {
@@ -33,8 +27,7 @@ func Encode(b []byte) (encd []byte) {
 		outlen += 10
 	}
 	encd = make([]byte, outlen, outlen+8) //冗余的8B用于可能的结尾的覆盖
-	vals := (*slice)(unsafe.Pointer(&encd)).Data
-	var n uintptr
+	var n int
 	i := 0
 	for ; i <= len(b)-7; i += 7 {
 		sum := 0x000000000000003f & ((uint64)(b[i]) >> 2)
@@ -46,7 +39,7 @@ func Encode(b []byte) (encd []byte) {
 		sum |= ((uint64)(b[i+5]) << 48) & 0x003f000000000000
 		sum |= ((uint64)(b[i+6]) << 56) & 0xff00000000000000
 		sum += 0x004e004e004e004e
-		*(*uint64)(unsafe.Pointer(uintptr(vals) + n)) = sum
+		binary.LittleEndian.PutUint64(encd[n:], sum)
 		n += 8
 	}
 	if offset > 0 {
@@ -73,7 +66,9 @@ func Encode(b []byte) (encd []byte) {
 			}
 		}
 		sum += 0x004e004e004e004e
-		*(*uint64)(unsafe.Pointer(uintptr(vals) + n)) = sum
+		var tmp [8]byte
+		binary.LittleEndian.PutUint64(tmp[:], sum)
+		copy(encd[n:], tmp[:])
 		encd[outlen-2] = '='
 		encd[outlen-1] = byte(offset)
 	}
@@ -100,11 +95,10 @@ func Decode(b []byte) (decd []byte) {
 	}
 	outlen = outlen/8*7 + offset
 	decd = make([]byte, outlen)
-	vals := (*slice)(unsafe.Pointer(&b)).Data
 	var n uintptr
 	i := 0
 	for ; i <= len(decd)-7; n += 8 {
-		sum := *(*uint64)(unsafe.Pointer(uintptr(vals) + n)) - 0x004e004e004e004e
+		sum := binary.LittleEndian.Uint64(b[n:]) - 0x004e004e004e004e
 		decd[i] = byte(((sum & 0x000000000000003f) << 2) | ((sum & 0x000000000000c000) >> 14))
 		i++
 		decd[i] = byte(((sum & 0x0000000000003f00) >> 6) | ((sum & 0x0000000000300000) >> 20))
@@ -121,7 +115,8 @@ func Decode(b []byte) (decd []byte) {
 		i++
 	}
 	if offset > 0 {
-		sum := *(*uint64)(unsafe.Pointer(uintptr(vals) + n)) - 0x000000000000004e
+		b = append(b, make([]byte, offset)...)
+		sum := binary.LittleEndian.Uint64(b[n:]) - 0x000000000000004e
 		decd[i] = byte(((sum & 0x000000000000003f) << 2) | ((sum & 0x000000000000c000) >> 14))
 		i++
 		if offset > 1 {
@@ -143,7 +138,6 @@ func Decode(b []byte) (decd []byte) {
 							decd[i] = byte(((sum & 0x0000030000000000) >> 34) | ((sum & 0x003f000000000000) >> 48))
 							i++
 						}
-
 					}
 				}
 			}
