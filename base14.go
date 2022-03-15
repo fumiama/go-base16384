@@ -26,7 +26,7 @@ func Encode(b []byte) (encd []byte) {
 	case 6:
 		outlen += 10
 	}
-	encd = make([]byte, outlen, outlen+8) //冗余的8B用于可能的结尾的覆盖
+	encd = make([]byte, outlen)
 	var n int
 	i := 0
 	for ; i <= len(b)-7; i += 7 {
@@ -115,8 +115,9 @@ func Decode(b []byte) (decd []byte) {
 		i++
 	}
 	if offset > 0 {
-		b = append(b, make([]byte, offset)...)
-		sum := binary.LittleEndian.Uint64(b[n:]) - 0x000000000000004e
+		var tmp [8]byte
+		copy(tmp[:], b[n:])
+		sum := binary.LittleEndian.Uint64(tmp[:]) - 0x000000000000004e
 		decd[i] = byte(((sum & 0x000000000000003f) << 2) | ((sum & 0x000000000000c000) >> 14))
 		i++
 		if offset > 1 {
