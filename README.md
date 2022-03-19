@@ -1,21 +1,6 @@
 # go-base16384
 base16384 interface of golang
 
-## Functions
-
-### func EncodeString(b string) []byte
-Encode string b to utf16be.
-### func DecodeString(d []byte) string
-Decode to string from encoded b.
-### func Encode(b []byte) []byte
-Encode b to utf16be.
-### func Decode(b []byte) []byte
-Decode from encoded b.
-### func UTF16be2utf8(b []byte) ([]byte, error)
-Display the result.
-### func UTF82utf16be(b []byte) ([]byte, error)
-Turn the result to its original coding form to decode.
-
 # Usage
 ## As package
 Just import it in your project.
