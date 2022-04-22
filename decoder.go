@@ -24,43 +24,63 @@ func (d *Decoder) Read(p []byte) (n int, err error) {
 		err = io.EOF
 		return
 	}
-	inlen := len(p)/7*8 + 2
+	inlen := len(p) / 7 * 8
 	if d.r != nil {
 		d.b = append(d.b, make([]byte, inlen)...)
 		n, err = d.r.Read(d.b[i:])
+		if n <= 0 {
+			return
+		}
 		inlen = i + n
-		d.b = d.b[:inlen]
 		if err != nil {
-			if len(d.b) > 0 {
+			if inlen > 0 {
 				offset := 0
-				if d.b[len(d.b)-2] == '=' {
-					offset = int(d.b[len(d.b)-1])
+				if d.b[inlen-2] == '=' {
+					offset = int(d.b[inlen-1])
 				}
-				n = DecodeLen(len(d.b), offset)
-				_ = DecodeTo(d.b, p)
+				n = DecodeLen(inlen, offset)
+				_ = DecodeTo(d.b[:inlen], p)
 				d.b = nil
 				d.r = nil
 			}
 			return
 		}
+		if inlen%2 != 0 {
+			d.b = d.b[:inlen]
+			n = 0
+			return
+		}
+		offset := 0
+		if d.b[inlen-2] == '=' {
+			offset = int(d.b[inlen-1])
+		}
+		if offset > 0 {
+			n = DecodeLen(len(d.b[:inlen]), offset)
+			_ = DecodeTo(d.b[:inlen], p)
+			d.b = nil
+			d.r = nil
+		} else {
+			n = DecodeLen(inlen, 0)
+			_ = DecodeTo(d.b[:inlen], p)
+			d.b = d.b[:0]
+		}
+		return
 	} else if inlen > len(d.b) {
 		inlen = len(d.b)
 	}
-	if inlen >= 2 {
-		inlen -= 2
+	if inlen <= 2 {
+		err = io.EOF
+		return
+	}
+	if len(d.b[inlen:]) == 2 {
+		inlen += 2
 	}
 	offset := 0
-	if d.b[len(d.b)-2] == '=' {
-		offset = int(d.b[len(d.b)-1])
+	if d.b[inlen-2] == '=' {
+		offset = int(d.b[inlen-1])
 	}
-	if offset > 0 {
-		n = DecodeLen(len(d.b), offset)
-		_ = DecodeTo(d.b, p)
-		d.b = nil
-	} else {
-		n = DecodeLen(inlen, 0)
-		_ = DecodeTo(d.b[:inlen], p)
-		d.b = d.b[inlen:]
-	}
+	n = DecodeLen(inlen, offset)
+	_ = DecodeTo(d.b[:inlen], p)
+	d.b = d.b[inlen:]
 	return
 }

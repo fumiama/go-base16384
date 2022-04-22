@@ -4,7 +4,7 @@
 #include "textflag.h"
 
 // func encode(offset, outlen int, b, encd []byte)
-TEXT ·encode(SB), NOSPLIT, $56-64
+TEXT ·encode(SB), NOSPLIT, $0-64
     MOVQ ·offset+0(FP), R10
     MOVQ ·outlen+8(FP), AX
     MOVQ ·data+16(FP), DI
@@ -125,7 +125,7 @@ encend:
 
 
 // func decode(offset, outlen int, b, decd []byte)
-TEXT ·decode(SB), NOSPLIT, $56-64
+TEXT ·decode(SB), NOSPLIT, $0-64
     MOVQ ·offset+0(FP), BX
     MOVQ ·outlen+8(FP), R8
     MOVQ ·data+16(FP), DI

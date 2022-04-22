@@ -29,7 +29,6 @@ func (e *Encoder) Read(p []byte) (n int, err error) {
 		e.b = append(e.b, make([]byte, inlen)...)
 		n, err = e.r.Read(e.b[i:])
 		inlen = i + n
-		e.b = e.b[:inlen]
 		if err != nil {
 			if len(e.b) > 0 {
 				n = EncodeLen(inlen)
@@ -39,11 +38,15 @@ func (e *Encoder) Read(p []byte) (n int, err error) {
 			e.r = nil
 			return
 		}
+		n = EncodeLen(inlen)
+		err = EncodeTo(e.b[:inlen], p)
+		e.b = e.b[:0]
+		return
 	} else if inlen > len(e.b) {
 		inlen = len(e.b)
 	}
 	n = EncodeLen(inlen)
-	_ = EncodeTo(e.b[:inlen], p)
+	err = EncodeTo(e.b[:inlen], p)
 	e.b = e.b[inlen:]
 	return
 }

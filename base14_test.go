@@ -29,22 +29,23 @@ func TestBase14(t *testing.T) {
 }
 
 func TestEncoder(t *testing.T) {
-	buf := make([]byte, 42242141)
+	buf := make([]byte, 1024*1024+1)
 	_, err := rand.Read(buf)
 	if err != nil {
 		t.Fatal(err)
 	}
-	e := NewEncoder(bytes.NewReader(buf))
-	w := bytes.NewBuffer(make([]byte, 0, 42242150))
-	_, err = io.Copy(w, e)
-	if err != nil {
-		t.Fatal(err)
+	w := bytes.NewBuffer(make([]byte, 0, 1024*1024+1))
+	for i := 0; i <= 1024*1024; i += rand.Intn(128) * 7 {
+		e := NewEncoder(bytes.NewReader(buf[:i]))
+		_, err = io.Copy(w, e)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(Encode(buf[:i]), w.Bytes()) {
+			t.Fail()
+		}
+		w.Reset()
 	}
-	out := w.Bytes()
-	assert.Equal(t, 48276736, w.Len())
-	d := Decode(out)
-	t.Log(len(out))
-	assert.Equal(t, buf, d)
 }
 
 func TestBufferedEncoder(t *testing.T) {
@@ -53,17 +54,17 @@ func TestBufferedEncoder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	e := NewBufferedEncoder(buf)
-	w := bytes.NewBuffer(make([]byte, 0, 1024*1024+16))
-	_, err = io.Copy(w, e)
-	if err != nil {
-		t.Fatal(err)
-	}
-	out := w.Bytes()
-	t.Log(w.Len())
-	d := Decode(out)
-	if !bytes.Equal(buf, d) {
-		t.Fail()
+	w := bytes.NewBuffer(make([]byte, 0, 1024*1024+1))
+	for i := 0; i <= 1024*1024; i += rand.Intn(128) * 7 {
+		e := NewBufferedEncoder(buf[:i])
+		_, err = io.Copy(w, e)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(Encode(buf[:i]), w.Bytes()) {
+			t.Fail()
+		}
+		w.Reset()
 	}
 }
 
@@ -73,15 +74,18 @@ func TestDecoder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	encd := Encode(buf)
 	w := bytes.NewBuffer(make([]byte, 0, 1024*1024+1))
-	d := NewDecoder(bytes.NewReader(Encode(buf)))
-	_, err = io.Copy(w, d)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(w.Len())
-	if !bytes.Equal(buf, w.Bytes()) {
-		t.Fail()
+	for i := 0; i <= 1024*1024; i += rand.Intn(128) * 8 {
+		d := NewDecoder(bytes.NewReader(encd[:i]))
+		_, err = io.Copy(w, d)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(buf[:i/8*7], w.Bytes()) {
+			t.Fail()
+		}
+		w.Reset()
 	}
 }
 
@@ -91,19 +95,22 @@ func TestBufferedDecoder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	encd := Encode(buf)
 	w := bytes.NewBuffer(make([]byte, 0, 1024*1024+1))
-	d := NewBufferedDecoder(Encode(buf))
-	_, err = io.Copy(w, d)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(w.Len())
-	if !bytes.Equal(buf, w.Bytes()) {
-		t.Fail()
+	for i := 0; i <= 1024*1024; i += rand.Intn(128) * 8 {
+		d := NewBufferedDecoder(encd[:i])
+		_, err = io.Copy(w, d)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(buf[:i/8*7], w.Bytes()) {
+			t.Fail()
+		}
+		w.Reset()
 	}
 }
 
-func benchEncrypt(b *testing.B, data []byte) {
+func benchEncode(b *testing.B, data []byte) {
 	_, err := rand.Read(data)
 	if err != nil {
 		panic(err)
@@ -116,7 +123,7 @@ func benchEncrypt(b *testing.B, data []byte) {
 	}
 }
 
-func benchDecrypt(b *testing.B, data []byte) {
+func benchDecode(b *testing.B, data []byte) {
 	_, err := rand.Read(data)
 	if err != nil {
 		panic(err)
@@ -136,37 +143,94 @@ func benchDecrypt(b *testing.B, data []byte) {
 func BenchmarkEncodeTo(b *testing.B) {
 	b.Run("16", func(b *testing.B) {
 		data := make([]byte, 16)
-		benchEncrypt(b, data)
+		benchEncode(b, data)
 	})
 	b.Run("256", func(b *testing.B) {
 		data := make([]byte, 256)
-		benchEncrypt(b, data)
+		benchEncode(b, data)
 	})
 	b.Run("4K", func(b *testing.B) {
 		data := make([]byte, 1024*4)
-		benchEncrypt(b, data)
+		benchEncode(b, data)
 	})
 	b.Run("32K", func(b *testing.B) {
 		data := make([]byte, 1024*32)
-		benchEncrypt(b, data)
+		benchEncode(b, data)
 	})
 }
 
 func BenchmarkDecodeTo(b *testing.B) {
 	b.Run("16", func(b *testing.B) {
 		data := make([]byte, 16)
-		benchDecrypt(b, data)
+		benchDecode(b, data)
 	})
 	b.Run("256", func(b *testing.B) {
 		data := make([]byte, 256)
-		benchDecrypt(b, data)
+		benchDecode(b, data)
 	})
 	b.Run("4K", func(b *testing.B) {
 		data := make([]byte, 4096)
-		benchDecrypt(b, data)
+		benchDecode(b, data)
 	})
 	b.Run("32K", func(b *testing.B) {
 		data := make([]byte, 1024*32)
-		benchDecrypt(b, data)
+		benchDecode(b, data)
+	})
+}
+
+func benchEncoder(b *testing.B, cnt int64) {
+	enc := NewEncoder(rand.New(rand.NewSource(0)))
+	buf := bytes.NewBuffer(make([]byte, 0, cnt))
+	b.SetBytes(cnt)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = io.CopyN(buf, enc, cnt)
+		buf.Reset()
+	}
+}
+
+func benchDecoder(b *testing.B, cnt int64) {
+	enc := NewEncoder(rand.New(rand.NewSource(0)))
+	buf := bytes.NewBuffer(make([]byte, 0, cnt))
+	_, err := io.CopyN(buf, enc, cnt)
+	if err != nil {
+		panic(err)
+	}
+	buf2 := bytes.NewBuffer(make([]byte, 0, cnt))
+	b.SetBytes(cnt)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = io.Copy(buf2, NewDecoder(bytes.NewReader(buf.Bytes())))
+		buf2.Reset()
+	}
+}
+
+func BenchmarkEncoder(b *testing.B) {
+	b.Run("16", func(b *testing.B) {
+		benchEncoder(b, 16)
+	})
+	b.Run("256", func(b *testing.B) {
+		benchEncoder(b, 256)
+	})
+	b.Run("4K", func(b *testing.B) {
+		benchEncoder(b, 1024*4)
+	})
+	b.Run("32K", func(b *testing.B) {
+		benchEncoder(b, 1024*32)
+	})
+}
+
+func BenchmarkDecoder(b *testing.B) {
+	b.Run("16", func(b *testing.B) {
+		benchDecoder(b, 16)
+	})
+	b.Run("256", func(b *testing.B) {
+		benchDecoder(b, 256)
+	})
+	b.Run("4K", func(b *testing.B) {
+		benchDecoder(b, 1024*4)
+	})
+	b.Run("32K", func(b *testing.B) {
+		benchDecoder(b, 1024*32)
 	})
 }
