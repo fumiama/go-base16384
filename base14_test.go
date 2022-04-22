@@ -2,6 +2,7 @@ package base14
 
 import (
 	"bytes"
+	"encoding/hex"
 	"io"
 	"math/rand"
 	"testing"
@@ -10,10 +11,21 @@ import (
 )
 
 func TestBase14(t *testing.T) {
-	teststr := "一个测试293大大的啊定位为恶的我284的我……#@%@%@"
-	es := EncodeString(teststr)
-	assert.Equal(t, "蜮嘎惢磦筢貊豔耹嫹桊涖犧蟦癎摖壥禦籋萷犸粹瘛榞梄螢圓因苧璡屨灇炀瞸瘊暍严帉戀㴃", es)
-	assert.Equal(t, teststr, DecodeString(es))
+	assert.Equal(t, "蜮嘎惢磦筢貊豔耹嫹桊涖犧蟦癎摖壥禦籋萷犸粹瘛榞梄螢圓因苧璡屨灇炀瞸瘊暍严帉戀㴃", EncodeString("一个测试293大大的啊定位为恶的我284的我……#@%@%@"))
+	assert.Equal(t, "婀㴁", EncodeString("1"))
+	assert.Equal(t, "婌渀㴂", EncodeString("12"))
+	assert.Equal(t, "婌焰㴃", EncodeString("123"))
+	assert.Equal(t, "婌焳帀㴄", EncodeString("1234"))
+	assert.Equal(t, "婌焳廔㴅", EncodeString("12345"))
+	assert.Equal(t, "婌焳廔萀㴆", EncodeString("123456"))
+	assert.Equal(t, "婌焳廔萷", EncodeString("1234567"))
+	assert.Equal(t, "婌焳廔萷尀㴁", EncodeString("12345678"))
+	buf := make([]byte, 4096)
+	for i := 1; i < 4096; i++ {
+		rand.Read(buf[:i])
+		out := Decode(Encode(buf[:i]))
+		assert.Equal(t, hex.EncodeToString(buf[:i]), hex.EncodeToString(out))
+	}
 }
 
 func TestEncoder(t *testing.T) {
