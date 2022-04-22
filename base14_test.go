@@ -90,3 +90,71 @@ func TestBufferedDecoder(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func benchEncrypt(b *testing.B, data []byte) {
+	_, err := rand.Read(data)
+	if err != nil {
+		panic(err)
+	}
+	buf := make([]byte, EncodeLen(len(data)))
+	b.SetBytes(int64(len(data)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = EncodeTo(data, buf)
+	}
+}
+
+func benchDecrypt(b *testing.B, data []byte) {
+	_, err := rand.Read(data)
+	if err != nil {
+		panic(err)
+	}
+	buf := make([]byte, EncodeLen(len(data)))
+	err = EncodeTo(data, buf)
+	if err != nil {
+		panic(err)
+	}
+	b.SetBytes(int64(len(buf)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = DecodeTo(buf, data)
+	}
+}
+
+func BenchmarkEncodeTo(b *testing.B) {
+	b.Run("16", func(b *testing.B) {
+		data := make([]byte, 16)
+		benchEncrypt(b, data)
+	})
+	b.Run("256", func(b *testing.B) {
+		data := make([]byte, 256)
+		benchEncrypt(b, data)
+	})
+	b.Run("4K", func(b *testing.B) {
+		data := make([]byte, 1024*4)
+		benchEncrypt(b, data)
+	})
+	b.Run("32K", func(b *testing.B) {
+		data := make([]byte, 1024*32)
+		benchEncrypt(b, data)
+	})
+}
+
+func BenchmarkDecodeTo(b *testing.B) {
+	b.Run("16", func(b *testing.B) {
+		data := make([]byte, 16)
+		benchDecrypt(b, data)
+	})
+	b.Run("256", func(b *testing.B) {
+		data := make([]byte, 256)
+		benchDecrypt(b, data)
+	})
+	b.Run("4K", func(b *testing.B) {
+		data := make([]byte, 4096)
+		benchDecrypt(b, data)
+	})
+	b.Run("32K", func(b *testing.B) {
+		data := make([]byte, 1024*32)
+		benchDecrypt(b, data)
+	})
+}
