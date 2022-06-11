@@ -105,9 +105,9 @@ func Decode(b []byte) (decd []byte) {
 		}
 	}
 	outlen = outlen/8*7 + offset
-	decd = make([]byte, outlen)
+	decd = make([]byte, outlen+1)
 	decode(offset, outlen, b, decd)
-	return
+	return decd[:outlen]
 }
 
 //go:nosplit
