@@ -40,7 +40,7 @@ func Encode(b []byte) (encd []byte) {
 		outlen += 10
 	}
 	encd = make([]byte, outlen)
-	encode(offset, outlen, append(b, 0), encd)
+	encode(offset, outlen, b, encd)
 	return
 }
 
@@ -62,7 +62,7 @@ func EncodeTo(b, encd []byte) error {
 	if len(encd) < outlen {
 		return errors.New("encd too small")
 	}
-	encode(offset, outlen, append(b, 0), encd)
+	encode(offset, outlen, b, encd)
 	return nil
 }
 
@@ -105,7 +105,7 @@ func Decode(b []byte) (decd []byte) {
 		}
 	}
 	outlen = outlen/8*7 + offset
-	decd = make([]byte, outlen+1)
+	decd = make([]byte, outlen+8)
 	decode(offset, outlen, b, decd)
 	return decd[:outlen]
 }

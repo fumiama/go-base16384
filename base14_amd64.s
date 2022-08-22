@@ -3,8 +3,8 @@
 
 #include "textflag.h"
 
-// func encode(offset, outlen int, b, encd []byte)
-TEXT ·encode(SB), NOSPLIT, $0-64
+// func _encode(offset, outlen int, b, encd []byte) (sum uint64, n uint64)
+TEXT ·_encode(SB), NOSPLIT, $0-81
     MOVQ ·offset+0(FP), R10
     MOVQ ·outlen+8(FP), AX
     MOVQ ·data+16(FP), DI
@@ -116,16 +116,16 @@ encrem:
 encsav:
     MOVQ $21955383195992142, CX
     ADDQ CX, DX
-    MOVQ DX, 0(R9)(SI*8)
-    MOVB $61, -2(R9)(AX*1)
-    MOVB R10, -1(R9)(AX*1)
+    SHLQ $3, SI
+    MOVQ DX, ·sum+64(FP)
+    MOVQ SI, ·sum+72(FP)
 
 encend:
     RET
 
 
-// func decode(offset, outlen int, b, decd []byte)
-TEXT ·decode(SB), NOSPLIT, $0-64
+// func _decode(offset, outlen int, b, decd []byte)
+TEXT ·_decode(SB), NOSPLIT, $0-64
     MOVQ ·offset+0(FP), BX
     MOVQ ·outlen+8(FP), R8
     MOVQ ·data+16(FP), DI

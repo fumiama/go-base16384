@@ -3,10 +3,36 @@
 
 package base14
 
-//go:noescape
-//go:nosplit
-func encode(offset, outlen int, b, encd []byte)
+import (
+	"encoding/binary"
+)
 
 //go:noescape
 //go:nosplit
-func decode(offset, outlen int, b, decd []byte)
+func _encode(offset, outlen int, b, encd []byte) (sum uint64, n uint64)
+
+//go:noescape
+//go:nosplit
+func _decode(offset, outlen int, b, decd []byte)
+
+func encode(offset, outlen int, b, encd []byte) {
+	if len(b) == 7 {
+		b = append(b, 0)
+	}
+	sum, n := _encode(offset, outlen, b, encd)
+	if offset == 0 {
+		return
+	}
+	var tmp [8]byte
+	binary.LittleEndian.PutUint64(tmp[:], sum)
+	copy(encd[n:], tmp[:])
+	encd[outlen-2] = '='
+	encd[outlen-1] = byte(offset)
+}
+
+func decode(offset, outlen int, b, decd []byte) {
+	if offset != 0 && cap(b) == len(b) {
+		b = append(b, make([]byte, 8)...)
+	}
+	_decode(offset, outlen, b, decd)
+}
