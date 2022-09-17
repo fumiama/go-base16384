@@ -1,12 +1,9 @@
-//go:build !amd64
-// +build !amd64
-
 package base14
 
 import "encoding/binary"
 
 //go:nosplit
-func encode(offset, outlen int, b, encd []byte) {
+func encodeGeneric(offset, outlen int, b, encd []byte) {
 	var n int
 	i := 0
 	if len(b) == 7 {
@@ -23,6 +20,9 @@ func encode(offset, outlen int, b, encd []byte) {
 		sum += 0x4e004e004e004e00
 		binary.BigEndian.PutUint64(encd[n:], sum)
 	} else {
+		if len(b)%7 == 0 {
+			b = append(b, 0)
+		}
 		for ; i <= len(b)-7; i += 7 {
 			shift := binary.BigEndian.Uint64(b[i:]) >> 2
 			sum := shift
@@ -71,7 +71,7 @@ func encode(offset, outlen int, b, encd []byte) {
 }
 
 //go:nosplit
-func decode(offset, outlen int, b, decd []byte) {
+func decodeGeneric(offset, outlen int, b, decd []byte) {
 	var n uintptr
 	i := 0
 	for ; i <= outlen-7; n += 8 {
