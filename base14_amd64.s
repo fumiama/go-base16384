@@ -118,7 +118,7 @@ encsav:
     ADDQ CX, DX
     SHLQ $3, SI
     MOVQ DX, ·sum+64(FP)
-    MOVQ SI, ·sum+72(FP)
+    MOVQ SI, ·n+72(FP)
 
 encend:
     RET
