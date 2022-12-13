@@ -25,7 +25,6 @@ func encode(offset, outlen int, b, encd []byte) {
 		return
 	}
 	n := valn - (uintptr)(*(*unsafe.Pointer)(unsafe.Pointer(&encd)))
-	println(sum, n)
 	var tmp [4]byte
 	binary.LittleEndian.PutUint32(tmp[:], uint32(sum))
 	copy(encd[n:], tmp[:])
@@ -34,12 +33,8 @@ func encode(offset, outlen int, b, encd []byte) {
 }
 
 func decode(offset, outlen int, b, decd []byte) {
-	/*
-		if offset != 0 && cap(b) == len(b) {
-			b = append(b, make([]byte, 8)...)
-		}
-		_decode(offset, outlen, b, decd)
-	*/
-
-	decodeGeneric(offset, outlen, b, decd)
+	if offset != 0 && cap(b) == len(b) {
+		b = append(b, make([]byte, 8)...)
+	}
+	_decode(offset, outlen, b, decd)
 }

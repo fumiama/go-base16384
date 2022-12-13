@@ -24,7 +24,9 @@ func TestBase14(t *testing.T) {
 	for i := 1; i < 4096; i++ {
 		rand.Read(buf[:i])
 		out := Decode(Encode(buf[:i]))
-		assert.Equal(t, hex.EncodeToString(buf[:i]), hex.EncodeToString(out))
+		if !assert.Equal(t, hex.EncodeToString(buf[:i]), hex.EncodeToString(out)) {
+			t.Fatal()
+		}
 	}
 }
 
