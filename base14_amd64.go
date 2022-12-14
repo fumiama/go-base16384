@@ -9,7 +9,7 @@ import (
 
 //go:noescape
 //go:nosplit
-func _encode(offset, outlen int, b, encd []byte) (sum uint64, n uint64)
+func _encode(offset int, b, encd []byte) (sum uint64, n uint64)
 
 //go:noescape
 //go:nosplit
@@ -17,10 +17,7 @@ func _decode(offset, outlen int, b, decd []byte)
 
 func encode(offset, outlen int, b, encd []byte) {
 	if movbe {
-		if len(b) == 7 {
-			b = append(b, 0)
-		}
-		sum, n := _encode(offset, outlen, b, encd)
+		sum, n := _encode(offset, b, encd)
 		if offset == 0 {
 			return
 		}
@@ -36,9 +33,6 @@ func encode(offset, outlen int, b, encd []byte) {
 
 func decode(offset, outlen int, b, decd []byte) {
 	if movbe {
-		if offset != 0 && cap(b) == len(b) {
-			b = append(b, make([]byte, 8)...)
-		}
 		_decode(offset, outlen, b, decd)
 	} else {
 		decodeGeneric(offset, outlen, b, decd)
