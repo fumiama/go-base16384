@@ -13,8 +13,8 @@ func BytesToString(b []byte) string {
 func StringToBytes(s string) (b []byte) {
 	bh := (*slice)(unsafe.Pointer(&b))
 	sh := (*slice)(unsafe.Pointer(&s))
-	bh.Data = sh.Data
-	bh.Len = sh.Len
-	bh.Cap = sh.Len
+	bh.data = sh.data
+	bh.len = sh.len
+	bh.cap = sh.len
 	return b
 }

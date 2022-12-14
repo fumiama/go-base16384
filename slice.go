@@ -9,7 +9,7 @@ import "unsafe"
 // Unlike reflect.SliceHeader, its Data field is sufficient to guarantee the
 // data it references will not be garbage collected.
 type slice struct {
-	Data unsafe.Pointer
-	Len  int
-	Cap  int
+	data unsafe.Pointer
+	len  int
+	cap  int
 }
