@@ -44,7 +44,7 @@ func Encode(b []byte) (encd []byte) {
 	return
 }
 
-func EncodeTo(b, encd []byte) error {
+func EncodeTo(b, encd []byte) (int, error) {
 	outlen := len(b) / 7 * 8
 	offset := len(b) % 7
 	switch offset { //算上偏移标志字符占用的2字节
@@ -60,10 +60,10 @@ func EncodeTo(b, encd []byte) error {
 		outlen += 10
 	}
 	if len(encd) < outlen {
-		return errors.New("encd too small")
+		return 0, errors.New("encd too small")
 	}
 	encode(offset, outlen, b, encd)
-	return nil
+	return outlen, nil
 }
 
 //go:nosplit
@@ -111,7 +111,7 @@ func Decode(b []byte) (decd []byte) {
 }
 
 //go:nosplit
-func DecodeTo(b []byte, decd []byte) error {
+func DecodeTo(b []byte, decd []byte) (int, error) {
 	outlen := len(b)
 	offset := 0
 	if b[len(b)-2] == '=' {
@@ -131,8 +131,8 @@ func DecodeTo(b []byte, decd []byte) error {
 	}
 	outlen = outlen/8*7 + offset
 	if len(decd) < outlen {
-		return errors.New("decd too small")
+		return 0, errors.New("decd too small")
 	}
 	decode(offset, outlen, b, decd)
-	return nil
+	return outlen, nil
 }

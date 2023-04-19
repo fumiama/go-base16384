@@ -121,7 +121,7 @@ func benchEncode(b *testing.B, data []byte) {
 	b.SetBytes(int64(len(data)))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = EncodeTo(data, buf)
+		_, _ = EncodeTo(data, buf)
 	}
 }
 
@@ -131,14 +131,14 @@ func benchDecode(b *testing.B, data []byte) {
 		panic(err)
 	}
 	buf := make([]byte, EncodeLen(len(data)))
-	err = EncodeTo(data, buf)
+	_, err = EncodeTo(data, buf)
 	if err != nil {
 		panic(err)
 	}
 	b.SetBytes(int64(len(buf)))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = DecodeTo(buf, data)
+		_, _ = DecodeTo(buf, data)
 	}
 }
 

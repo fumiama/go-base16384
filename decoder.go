@@ -34,12 +34,7 @@ func (d *Decoder) Read(p []byte) (n int, err error) {
 		inlen = i + n
 		if err != nil {
 			if inlen > 0 {
-				offset := 0
-				if d.b[inlen-2] == '=' {
-					offset = int(d.b[inlen-1])
-				}
-				n = DecodeLen(inlen, offset)
-				_ = DecodeTo(d.b[:inlen], p)
+				n, _ = DecodeTo(d.b[:inlen], p)
 				d.b = nil
 				d.r = nil
 			}
@@ -55,13 +50,11 @@ func (d *Decoder) Read(p []byte) (n int, err error) {
 			offset = int(d.b[inlen-1])
 		}
 		if offset > 0 {
-			n = DecodeLen(len(d.b[:inlen]), offset)
-			_ = DecodeTo(d.b[:inlen], p)
+			n, _ = DecodeTo(d.b[:inlen], p)
 			d.b = nil
 			d.r = nil
 		} else {
-			n = DecodeLen(inlen, 0)
-			_ = DecodeTo(d.b[:inlen], p)
+			n, _ = DecodeTo(d.b[:inlen], p)
 			d.b = d.b[:0]
 		}
 		return
@@ -75,12 +68,7 @@ func (d *Decoder) Read(p []byte) (n int, err error) {
 	if len(d.b[inlen:]) == 2 {
 		inlen += 2
 	}
-	offset := 0
-	if d.b[inlen-2] == '=' {
-		offset = int(d.b[inlen-1])
-	}
-	n = DecodeLen(inlen, offset)
-	_ = DecodeTo(d.b[:inlen], p)
+	n, _ = DecodeTo(d.b[:inlen], p)
 	d.b = d.b[inlen:]
 	return
 }
