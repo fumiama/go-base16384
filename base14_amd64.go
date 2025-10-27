@@ -15,6 +15,7 @@ func _encode(offset int, b, encd []byte) (sum uint64, n uint64)
 //go:nosplit
 func _decode(offset, outlen int, b, decd []byte)
 
+//go:nosplit
 func encode(offset, outlen int, b, encd []byte) {
 	if movbe {
 		sum, n := _encode(offset, b, encd)
@@ -31,6 +32,7 @@ func encode(offset, outlen int, b, encd []byte) {
 	}
 }
 
+//go:nosplit
 func decode(offset, outlen int, b, decd []byte) {
 	if movbe {
 		_decode(offset, outlen, b, decd)

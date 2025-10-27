@@ -14,10 +14,6 @@ func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{r: r}
 }
 
-func NewBufferedDecoder(b []byte) *Decoder {
-	return &Decoder{b: b}
-}
-
 func (d *Decoder) Read(p []byte) (n int, err error) {
 	i := len(d.b)
 	if i == 0 && d.r == nil {

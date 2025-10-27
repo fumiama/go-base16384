@@ -83,3 +83,53 @@ func main() {
 	}
 }
 ```
+
+# Performace Analysis
+The performance is optimized by replacing generic encode/decode functions with assembly code.
+
+## Encode Speedup by ASM
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/fumiama/go-base16384
+cpu: Apple M4 Max
+                │   old.txt   │              new.txt               │
+                │   sec/op    │   sec/op     vs base               │
+EncodeTo/16-16    5.340n ± 1%   5.664n ± 0%   +6.08% (p=0.002 n=6)
+EncodeTo/256-16   39.04n ± 1%   34.20n ± 1%  -12.37% (p=0.002 n=6)
+EncodeTo/4K-16    537.4n ± 1%   425.6n ± 0%  -20.80% (p=0.002 n=6)
+EncodeTo/32K-16   4.228µ ± 1%   3.361µ ± 1%  -20.51% (p=0.002 n=6)
+geomean           147.5n        129.0n       -12.54%
+
+                │   old.txt    │               new.txt               │
+                │     B/s      │     B/s       vs base               │
+EncodeTo/16-16    2.791Gi ± 1%   2.631Gi ± 0%   -5.73% (p=0.002 n=6)
+EncodeTo/256-16   6.108Gi ± 1%   6.970Gi ± 1%  +14.12% (p=0.002 n=6)
+EncodeTo/4K-16    7.098Gi ± 1%   8.963Gi ± 0%  +26.27% (p=0.002 n=6)
+EncodeTo/32K-16   7.218Gi ± 1%   9.079Gi ± 1%  +25.79% (p=0.002 n=6)
+geomean           5.436Gi        6.215Gi       +14.33%
+
+```
+
+## Decode Speedup by ASM
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/fumiama/go-base16384
+cpu: Apple M4 Max
+                │   old.txt   │              new.txt               │
+                │   sec/op    │   sec/op     vs base               │
+DecodeTo/16-16    5.302n ± 5%   3.525n ± 0%  -33.52% (p=0.002 n=6)
+DecodeTo/256-16   46.04n ± 1%   29.91n ± 1%  -35.05% (p=0.002 n=6)
+DecodeTo/4K-16    585.6n ± 1%   405.8n ± 0%  -30.70% (p=0.002 n=6)
+DecodeTo/32K-16   4.567µ ± 0%   3.197µ ± 0%  -30.00% (p=0.002 n=6)
+geomean           159.8n        108.1n       -32.35%
+
+                │   old.txt    │               new.txt                │
+                │     B/s      │      B/s       vs base               │
+DecodeTo/16-16    3.864Gi ± 5%    5.812Gi ± 1%  +50.40% (p=0.002 n=6)
+DecodeTo/256-16   5.987Gi ± 1%    9.219Gi ± 1%  +53.99% (p=0.002 n=6)
+DecodeTo/4K-16    7.450Gi ± 1%   10.749Gi ± 0%  +44.29% (p=0.002 n=6)
+DecodeTo/32K-16   7.638Gi ± 0%   10.911Gi ± 0%  +42.84% (p=0.002 n=6)
+geomean           6.024Gi         8.903Gi       +47.81%
+```

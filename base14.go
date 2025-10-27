@@ -24,6 +24,7 @@ func EncodeLen(in int) (out int) {
 	return
 }
 
+//go:nosplit
 func Encode(b []byte) (encd []byte) {
 	outlen := len(b) / 7 * 8
 	offset := len(b) % 7
@@ -44,6 +45,7 @@ func Encode(b []byte) (encd []byte) {
 	return
 }
 
+//go:nosplit
 func EncodeTo(b, encd []byte) (int, error) {
 	outlen := len(b) / 7 * 8
 	offset := len(b) % 7

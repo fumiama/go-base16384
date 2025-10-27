@@ -1,49 +1,68 @@
 package base14
 
 import (
+	"bytes"
 	"io"
 )
 
 type Encoder struct {
 	b []byte
-	r io.Reader
-	io.Reader
+	w io.Writer
+	io.WriteCloser
+	io.ReaderFrom
 }
 
-func NewEncoder(r io.Reader) *Encoder {
-	return &Encoder{r: r}
+func NewEncoder(w io.Writer) *Encoder {
+	return &Encoder{w: w}
 }
 
-func NewBufferedEncoder(b []byte) *Encoder {
-	return &Encoder{b: b}
-}
-
-func (e *Encoder) Read(p []byte) (n int, err error) {
+func (e *Encoder) ReadFrom(r io.Reader) (int64, error) {
+	if r == nil {
+		return 0, nil
+	}
 	i := len(e.b)
-	if i == 0 && e.r == nil {
-		err = io.EOF
-		return
+	if i == 0 && e.w == nil {
+		return 0, io.EOF
 	}
-	inlen := len(p) / 8 * 7
-	if e.r != nil {
+	n := 0
+	iseof := false
+	for !iseof {
+		inlen := 1024 / 8 * 7 // batch size
 		e.b = append(e.b, make([]byte, inlen)...)
-		n, err = e.r.Read(e.b[i:])
-		inlen = i + n
+		cnt, err := r.Read(e.b[i:])
+		n += cnt
+		iseof = err == io.EOF
 		if err != nil {
-			if len(e.b) > 0 {
-				n, _ = EncodeTo(e.b[:inlen], p)
+			if !iseof {
+				return int64(n), err
 			}
-			e.b = nil
-			e.r = nil
-			return
 		}
-		n, err = EncodeTo(e.b[:inlen], p)
-		e.b = e.b[:0]
-		return
-	} else if inlen > len(e.b) {
-		inlen = len(e.b)
+		e.b = e.b[:i+cnt]
+		inlen = len(e.b) / 8 * 7 // real batch size
+		if inlen == 0 {
+			if iseof {
+				return int64(n), nil
+			}
+			i = len(e.b)
+			continue
+		}
+		_, err = e.w.Write(Encode(e.b[:inlen]))
+		if err != nil {
+			return int64(n), err
+		}
+		i = copy(e.b, e.b[inlen:])
+		e.b = e.b[:i]
 	}
-	n, err = EncodeTo(e.b[:inlen], p)
-	e.b = e.b[inlen:]
-	return
+	return int64(n), nil
+}
+
+func (e *Encoder) Write(p []byte) (int, error) {
+	n, err := e.ReadFrom(bytes.NewReader(p))
+	return int(n), err
+}
+
+func (e *Encoder) Close() error {
+	_, err := e.w.Write(Encode(e.b))
+	e.b = nil
+	return err
 }
