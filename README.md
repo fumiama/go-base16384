@@ -116,6 +116,8 @@ geomean           5.436Gi        6.215Gi       +14.33%
 ```
 
 ## Decode Speedup by ASM
+
+### Apple M4 Max
 ```
 goos: darwin
 goarch: arm64
@@ -136,4 +138,27 @@ DecodeTo/256-16   5.987Gi ± 1%    9.219Gi ± 1%  +53.99% (p=0.002 n=6)
 DecodeTo/4K-16    7.450Gi ± 1%   10.749Gi ± 0%  +44.29% (p=0.002 n=6)
 DecodeTo/32K-16   7.638Gi ± 0%   10.911Gi ± 0%  +42.84% (p=0.002 n=6)
 geomean           6.024Gi         8.903Gi       +47.81%
+```
+
+### Apple M4
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/fumiama/go-base16384
+cpu: Apple M4
+                │   old.txt    │              new.txt               │
+                │    sec/op    │   sec/op     vs base               │
+DecodeTo/16-10    8.090n ±  4%   3.797n ± 2%  -53.06% (p=0.002 n=6)
+DecodeTo/256-10   50.81n ±  0%   32.84n ± 0%  -35.37% (p=0.002 n=6)
+DecodeTo/4K-10    644.5n ±  0%   439.2n ± 0%  -31.85% (p=0.002 n=6)
+DecodeTo/32K-10   5.113µ ± 13%   3.462µ ± 0%  -32.29% (p=0.002 n=6)
+geomean           191.8n         117.3n       -38.84%
+
+                │    old.txt    │               new.txt                │
+                │      B/s      │      B/s       vs base               │
+DecodeTo/16-10    2.533Gi ±  4%   5.395Gi ± 2%  +112.97% (p=0.002 n=6)
+DecodeTo/256-10   5.425Gi ±  0%   8.394Gi ± 0%   +54.72% (p=0.002 n=6)
+DecodeTo/4K-10    6.768Gi ±  0%   9.934Gi ± 0%   +46.78% (p=0.002 n=6)
+DecodeTo/32K-10   6.822Gi ± 12%  10.08Gi  ± 0%   +47.75% (p=0.002 n=6)
+geomean           5.019Gi         8.205Gi        +63.48%
 ```
