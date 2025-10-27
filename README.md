@@ -67,8 +67,12 @@ func main() {
 		panic(err)
 	}
 	w := bytes.NewBuffer(make([]byte, 0, 1024*1024+1))
-	e := b14.NewEncoder(bytes.NewReader(buf))
-	_, err = io.Copy(w, e)
+	e := b14.NewEncoder(w)
+	_, err = io.Copy(e, bytes.NewReader(buf))
+	if err != nil {
+		panic(err)
+	}
+	err = e.Close()
 	if err != nil {
 		panic(err)
 	}
